@@ -1,4 +1,4 @@
-# AI and app's permission
+# AI and app's permissions
 
 ## Project Description
 This project studies how AI affects mobile application permissions by analyzing multiple versions of phone apps.
