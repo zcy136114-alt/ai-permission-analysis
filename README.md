@@ -1,7 +1,7 @@
 # AI Permission Analysis
 
 ## Project Description
-This project studies how AI affects mobile application permissions by analyzing multiple versions of TikTok, Instagram, and ChatGPT.
+This project studies how AI affects mobile application permissions by analyzing multiple versions of phone apps.
 
 ## Methods
 - Static analysis of APK files using apktool
