@@ -1,0 +1,212 @@
+ The Impact of AI Features on Android App Permissions: GitHub-Ready Tables and Chart Text
+
+> Data source: `CI research data2.xlsx`.  
+> In this study, every `1/0` value indicates whether a permission is declared in the Android manifest:  
+> `1 = declared / present`, `0 = absent`.  
+> This does **not** directly prove that the user granted the permission, nor does it prove that the app actually used the permission at runtime.
+
+> Research scope: This study examines the relationship between **AI features, recommendation systems, multimodal input, advertising personalization, identity/social graph access, behavioral monitoring, background service capabilities**, and Android permission structures.
+
+## 0. Version / Sample Summary
+
+| App | 2022 sample | 2023 sample | 2024 sample | 2025 sample | 2026 sample | 2026 total manifest permissions |
+| --- | --- | --- | --- | --- | --- | --- |
+| TikTok | 2022 23.1.4 | 2023 27.7.3 | 2024 31.7.4 | 2025 38.2.3 | 2026 43.4.1 | 56 |
+| Instagram | 2022 217.0.0.15.474 | 2023 265.0.0.19.301 | 2024 313.0.0.26.328 | 2025 362.0.0.33.241 | 2026 411.0.0.23.257 | 72 |
+| Facebook | 2022 349.0.0.39.470 | 2023 399.0.0.24.93 | 2024 446.0.0.27.352 | 2025 493.0.0.72.158 | 2026 544.0.0.42.272 | 91 |
+
+## 1. Codebook: AI-relevant Permission Categories
+
+### 1.1 Core analytical categories
+
+| Category | Definition | Example permissions | Why it matters | Coding rule for this study |
+| --- | --- | --- | --- | --- |
+| Location & Tracking | Permissions that enable location access or location-derived behavioral inference | `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_MEDIA_LOCATION` | Can support location-based personalization, nearby content, ads, safety, tracking, and behavioral inference. | Code as high-value because location can become model input for recommendation, ad targeting, risk scoring, and context-aware AI. |
+| Camera / Audio / Multimodal AI | Permissions enabling visual/audio input capture or processing | `CAMERA`, `RECORD_AUDIO`, `MEDIA_PROJECTION`, `CAPTURE_VIDEO_OUTPUT` | Relevant to content creation, voice/video features, live streaming, AR effects, computer vision, speech processing, and multimodal AI input. | Code as high-value because these permissions are closest to direct multimodal data capture. |
+| Media & Content Access | Permissions enabling access to images, video, audio, or user-generated files | `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_MEDIA_AUDIO`, `READ_EXTERNAL_STORAGE` | Relevant to user content access, upload flows, content editing, recommendation systems, and multimodal analysis. | Code as high-value because media files can contain rich visual/audio/textual signals. |
+| Advertising / Attribution | Permissions linked to ad identifiers, install attribution, custom audiences, topics, or personalization measurement | `AD_ID`, `ACCESS_ADSERVICES_AD_ID`, install referrer permissions | Relevant to ad targeting, measurement, user acquisition analytics, personalization, and monetization. | Code as high-value because ad and attribution permissions connect app behavior to personalization and measurement infrastructure. |
+| System Noise | Vendor-specific, launcher, badge, shortcut, push, or internal compatibility permissions | badge/shortcut/vendor permissions, package-specific broadcast permissions | Often inflates raw manifest counts without necessarily implying new user-data access. | Code separately so the study does not confuse compatibility inflation with privacy-sensitive or AI-relevant expansion. |
+
+### 1.2 Expanded codebook used for the workbook categories
+
+| Workbook category | AI-function relevance / interpretation | Example permissions from this dataset | Analytical level |
+| --- | --- | --- | --- |
+| Accounts / Credentials / Identity | Account, credential, and identity-related permissions. These permissions may support login, account linking, identity graph construction, and cross-app identity association. | `android.permission.GET_ACCOUNTS`<br>`android.permission.AUTHENTICATE_ACCOUNTS`<br>`android.permission.MANAGE_ACCOUNTS` | High-value |
+| Ads / Personalization / Recommendation | Advertising ID, attribution, preload identification, and personalization-related permissions. These are relevant to personalized advertising, recommendation systems, campaign measurement, and growth analytics. | `com.google.android.gms.permission.AD_ID`<br>`android.permission.ACCESS_ADSERVICES_AD_ID`<br>`android.permission.ACCESS_ADSERVICES_ATTRIBUTION` | High-value |
+| Advertising / Attribution | Advertising ID, Topics, Custom Audience, and attribution-related permissions. These are relevant to ad targeting, measurement, personalization, and advertising infrastructure. | `com.google.android.gms.permission.AD_ID`<br>`android.permission.ACCESS_ADSERVICES_AD_ID`<br>`android.permission.ACCESS_ADSERVICES_ATTRIBUTION` | High-value |
+| Android Service Architecture | Foreground services, media playback, data synchronization, and other service-layer permissions. These support long-running or persistent app features. | `android.permission.FOREGROUND_SERVICE`<br>`android.permission.FOREGROUND_SERVICE_CAMERA`<br>`android.permission.FOREGROUND_SERVICE_MICROPHONE` | Support / system / noise depending on app section |
+| App-specific / Internal / Compatibility Noise | Internal, broadcast, inter-process, package-specific, or app-specific compatibility permissions. These should be separated so manifest expansion is not mistaken for privacy-sensitive expansion. | `com.ss.android.ugc.tiktok.livewallpaper.permission.wallpaperplugin`<br>`com.ss.android.ugc.trill.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`<br>`com.tiktok.manager.SYS_START_PERMISSION` | Support / system / noise depending on app section |
+| Background / Device State | Permissions related to startup, wake locks, battery behavior, background jobs, task state, and screen capture or screen recording detection. These may support background operation, risk control, anti-abuse systems, and system-event response. | `android.permission.RECEIVE_BOOT_COMPLETED`<br>`android.permission.REORDER_TASKS`<br>`android.permission.RUN_USER_INITIATED_JOBS` | Support / system / noise depending on app section |
+| Behavioral / Monitoring | Permissions related to screen capture detection, task stack state, overlays, notifications, and interaction monitoring. These may reflect behavioral monitoring, anti-abuse logic, fraud detection, or user activity context. | `android.permission.DETECT_SCREEN_CAPTURE`<br>`android.permission.SYSTEM_ALERT_WINDOW`<br>`android.permission.POST_NOTIFICATIONS` | High-value |
+| Billing / Attribution | In-app purchases and install attribution. These permissions are relevant to monetization, conversion funnels, app growth analytics, and commercial measurement. | `com.android.vending.BILLING`<br>`com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE` | Support / system / noise depending on app section |
+| Biometric / Authentication | Biometric or fingerprint authentication permissions. These are relevant to login, payments, account security, and sensitive operation verification. | `android.permission.USE_BIOMETRIC`<br>`android.permission.USE_FINGERPRINT` | High-value |
+| Biometric / Notification / Full-screen Intent | Permissions related to authentication, notification reach, and full-screen interaction. These affect user engagement, identity/security capabilities, and high-priority interaction surfaces. | `android.permission.USE_BIOMETRIC`<br>`android.permission.USE_FINGERPRINT`<br>`android.permission.USE_FULL_SCREEN_INTENT` | High-value |
+| Bluetooth / NFC / Device Features | Nearby devices, connected devices, Bluetooth, and NFC-related permissions. These are relevant to device ecosystems, accessories, proximity discovery, and offline/nearby interaction. | `android.permission.BLUETOOTH`<br>`android.permission.BLUETOOTH_CONNECT`<br>`android.permission.BLUETOOTH_SCAN` | Support / system / noise depending on app section |
+| Camera / Audio / Multimodal AI | Image, video, and voice input permissions. These are directly related to creation, live streaming, speech recognition, visual recognition, AR effects, and multimodal AI input. | `android.permission.CAMERA`<br>`android.permission.RECORD_AUDIO`<br>`android.permission.MODIFY_AUDIO_SETTINGS` | High-value |
+| Commerce / App Feature Support | Permissions supporting in-app purchases, wallpaper features, or app-specific commercial/product features. These are usually not direct AI inputs but may support monetization or product functionality. | `com.android.vending.BILLING`<br>`android.permission.SET_WALLPAPER` | Support / system / noise depending on app section |
+| Commerce / Install Attribution / Platform Services | Permissions related to in-app purchases, install attribution, and platform services. These are relevant to monetization and growth measurement. | `com.android.vending.BILLING`<br>`com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE` | Support / system / noise depending on app section |
+| Contacts & Identity | Permissions related to contact access, friend discovery, account identity, and social graph association. These are important for recommendation, growth, social graph inference, and personalization. | `android.permission.READ_CONTACTS`<br>`android.permission.AUTHENTICATE_ACCOUNTS`<br>`com.zhiliaoapp.musically.permission.READ_ACCOUNT` | High-value |
+| Contacts / Calendar / Phone Graph | Permissions related to contacts, calendar, phone state, call logs, phone numbers, and communication context. These can support identity inference, relationship mapping, and contextual personalization. | `android.permission.READ_CONTACTS`<br>`android.permission.READ_CALENDAR`<br>`android.permission.WRITE_CALENDAR` | High-value |
+| Foreground Services | Foreground-service permissions for camera, microphone, location, media projection, phone calls, connected devices, and media playback. These indicate system-level support for persistent sensitive capabilities. | `android.permission.FOREGROUND_SERVICE`<br>`android.permission.FOREGROUND_SERVICE_CAMERA`<br>`android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE` | Support / system / noise depending on app section |
+| Launcher / Badge / Shortcut | Launcher badge, shortcut, and home-screen compatibility permissions. These are usually compatibility noise and should not be directly interpreted as AI-related data access. | `android.permission.READ_APP_BADGE`<br>`android.permission.UPDATE_APP_BADGE`<br>`com.android.launcher.permission.INSTALL_SHORTCUT` | Support / system / noise depending on app section |
+| Location & Tracking | Location permissions that can support location-based recommendation, nearby content, geo-based advertising attribution, place-based safety features, and contextual risk control. | `android.permission.ACCESS_FINE_LOCATION`<br>`android.permission.ACCESS_COARSE_LOCATION`<br>`android.permission.ACCESS_MEDIA_LOCATION` | High-value |
+| Media & Content Access | Permissions that allow reading images, video, audio, and user media files. These can support upload flows, editing, content understanding, recommendation systems, and multimodal input. | `android.permission.READ_MEDIA_IMAGES`<br>`android.permission.READ_MEDIA_VIDEO`<br>`android.permission.READ_MEDIA_AUDIO` | High-value |
+| Network / Connectivity | Network, Wi-Fi, Bluetooth, and connectivity-state permissions. These support real-time recommendation, uploads, synchronization, and device-context awareness. | `android.permission.INTERNET`<br>`android.permission.ACCESS_NETWORK_STATE`<br>`android.permission.ACCESS_WIFI_STATE` | Support / system / noise depending on app section |
+| Personal Data / Calendar | Calendar permissions represent personal context data. These can be relevant to contextual personalization, reminders, scheduling, and privacy risk. | `android.permission.READ_CALENDAR`<br>`android.permission.WRITE_CALENDAR` | High-value |
+| Power / Alerts / Background Operation | Wake locks, vibration, boot startup, exact alarms, and background operation permissions. These support background reach, operational stability, reminders, and persistent app behavior. | `android.permission.WAKE_LOCK`<br>`android.permission.VIBRATE`<br>`android.permission.RECEIVE_BOOT_COMPLETED` | Support / system / noise depending on app section |
+| Push Ecosystem | Push notification channel and vendor messaging permissions. These affect notification delivery and user reach, but they do not necessarily indicate sensitive data collection. | `com.amazon.device.messaging.permission.RECEIVE`<br>`com.google.android.c2dm.permission.RECEIVE`<br>`com.meizu.c2dm.permission.RECEIVE` | Support / system / noise depending on app section |
+| Vendor Compatibility | Vendor-system compatibility permissions. These may support push delivery, system integration, or device-specific behavior, but most are not direct user-data permissions. | `com.google.android.providers.gsf.permission.READ_GSERVICES`<br>`com.huawei.appmarket.service.commondata.permission.GET_COMMON_DATA`<br>`com.oplus.ocs.permission.third` | Support / system / noise depending on app section |
+
+## 2. Line chart data: High-value / Sensitive / AI-relevant permissions by app, 2022–2026
+
+| App | 2022 | 2023 | 2024 | 2025 | 2026 | Net change 2022→2026 | Percent change |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| TikTok | 15 | 17 | 18 | 24 | 25 | +10 | 66.7% |
+| Instagram | 17 | 23 | 31 | 34 | 35 | +18 | 105.9% |
+| Facebook | 24 | 29 | 38 | 39 | 42 | +18 | 75.0% |
+
+### 2.1 Mermaid line chart
+
+```mermaid
+xychart-beta
+    title "High-value / Sensitive / AI-relevant permissions by app (2022–2026)"
+    x-axis [2022, 2023, 2024, 2025, 2026]
+    y-axis "Permission count" 0 --> 45
+    line "TikTok" [15, 17, 18, 24, 25]
+    line "Instagram" [17, 23, 31, 34, 35]
+    line "Facebook" [24, 29, 38, 39, 42]
+```
+
+### 2.2 High-value share of total manifest permissions
+
+| App | 2022 | 2023 | 2024 | 2025 | 2026 |
+| --- | --- | --- | --- | --- | --- |
+| TikTok | 15/65 (23.1%) | 17/74 (23.0%) | 18/38 (47.4%) | 24/51 (47.1%) | 25/56 (44.6%) |
+| Instagram | 17/38 (44.7%) | 23/46 (50.0%) | 31/63 (49.2%) | 34/68 (50.0%) | 35/72 (48.6%) |
+| Facebook | 24/59 (40.7%) | 29/64 (45.3%) | 38/82 (46.3%) | 39/85 (45.9%) | 42/91 (46.2%) |
+
+**Interpretive reading:** TikTok's total manifest count falls from 65 to 56, but its high-value count rises from 15 to 25. Instagram rises from 17 to 35. Facebook rises from 24 to 42. This supports a research argument about **AI-relevant permission concentration and expansion**, rather than only raw permission growth.
+
+## 3. Stacked bar data: Permission categories by app/year
+
+### 3.1 Normalized stack groups
+
+| Stack group | Meaning in this study |
+| --- | --- |
+| High-value / Sensitive / AI-relevant | The core explanatory category: permissions most closely related to AI input, personalization, recommendation, advertising, identity, behavioral monitoring, and sensitive user data access. |
+| System / Functional / Background | Functional and system-operation layer: permissions supporting foreground services, background operations, network access, connectivity, and device state. Some growth in this category may reflect Android platform permission-model changes. |
+| Commerce / Platform Services | Monetization and platform-service layer: permissions related to billing, install attribution, app-store services, and commercial measurement. |
+| Noise / Compatibility / Push | Noise and compatibility layer: launcher badges, vendor push systems, shortcuts, internal package permissions, and device-specific compatibility permissions. This category prevents raw total counts from being misread as direct privacy or AI expansion. |
+
+### 3.2 Stacked bar input table
+
+| App | Year | High-value / Sensitive / AI-relevant | System / Functional / Background | Commerce / Platform Services | Noise / Compatibility / Push | Total |
+| --- | --- | --- | --- | --- | --- | --- |
+| TikTok | 2022 | 15 | 10 | 2 | 38 | 65 |
+| TikTok | 2023 | 17 | 13 | 2 | 42 | 74 |
+| TikTok | 2024 | 18 | 10 | 2 | 8 | 38 |
+| TikTok | 2025 | 24 | 14 | 2 | 11 | 51 |
+| TikTok | 2026 | 25 | 17 | 2 | 12 | 56 |
+| Instagram | 2022 | 17 | 7 | 2 | 12 | 38 |
+| Instagram | 2023 | 23 | 8 | 2 | 13 | 46 |
+| Instagram | 2024 | 31 | 16 | 2 | 14 | 63 |
+| Instagram | 2025 | 34 | 18 | 2 | 14 | 68 |
+| Instagram | 2026 | 35 | 19 | 2 | 16 | 72 |
+| Facebook | 2022 | 24 | 16 | 1 | 18 | 59 |
+| Facebook | 2023 | 29 | 16 | 1 | 18 | 64 |
+| Facebook | 2024 | 38 | 23 | 2 | 19 | 82 |
+| Facebook | 2025 | 39 | 25 | 2 | 19 | 85 |
+| Facebook | 2026 | 42 | 27 | 2 | 20 | 91 |
+
+### 3.3 Text-only stacked bars
+
+Legend: `H = High-value / Sensitive / AI-relevant`, `S = System / Functional / Background`, `C = Commerce / Platform Services`, `N = Noise / Compatibility / Push`. Bars are scaled to 40 characters; exact counts are shown in the numeric columns.
+
+| App | Year | Scaled stacked bar | H | S | C | N | Total |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| TikTok | 2022 | `HHHHHHHHHSSSSSSCNNNNNNNNNNNNNNNNNNNNNNNN` | 15 | 10 | 2 | 38 | 65 |
+| TikTok | 2023 | `HHHHHHHHHSSSSSSSCNNNNNNNNNNNNNNNNNNNNNNN` | 17 | 13 | 2 | 42 | 74 |
+| TikTok | 2024 | `HHHHHHHHHHHHHHHHHHHSSSSSSSSSSSCCNNNNNNNN` | 18 | 10 | 2 | 8 | 38 |
+| TikTok | 2025 | `HHHHHHHHHHHHHHHHHHHSSSSSSSSSSSCNNNNNNNNN` | 24 | 14 | 2 | 11 | 51 |
+| TikTok | 2026 | `HHHHHHHHHHHHHHHHHHSSSSSSSSSSSSCNNNNNNNNN` | 25 | 17 | 2 | 12 | 56 |
+| Instagram | 2022 | `HHHHHHHHHHHHHHHHHHSSSSSSSCCNNNNNNNNNNNNN` | 17 | 7 | 2 | 12 | 38 |
+| Instagram | 2023 | `HHHHHHHHHHHHHHHHHHHHSSSSSSSCCNNNNNNNNNNN` | 23 | 8 | 2 | 13 | 46 |
+| Instagram | 2024 | `HHHHHHHHHHHHHHHHHHHHSSSSSSSSSSCNNNNNNNNN` | 31 | 16 | 2 | 14 | 63 |
+| Instagram | 2025 | `HHHHHHHHHHHHHHHHHHHHSSSSSSSSSSSCNNNNNNNN` | 34 | 18 | 2 | 14 | 68 |
+| Instagram | 2026 | `HHHHHHHHHHHHHHHHHHHSSSSSSSSSSSCNNNNNNNNN` | 35 | 19 | 2 | 16 | 72 |
+| Facebook | 2022 | `HHHHHHHHHHHHHHHHSSSSSSSSSSSCNNNNNNNNNNNN` | 24 | 16 | 1 | 18 | 59 |
+| Facebook | 2023 | `HHHHHHHHHHHHHHHHHHSSSSSSSSSSCNNNNNNNNNNN` | 29 | 16 | 1 | 18 | 64 |
+| Facebook | 2024 | `HHHHHHHHHHHHHHHHHHHSSSSSSSSSSSCNNNNNNNNN` | 38 | 23 | 2 | 19 | 82 |
+| Facebook | 2025 | `HHHHHHHHHHHHHHHHHHSSSSSSSSSSSSCNNNNNNNNN` | 39 | 25 | 2 | 19 | 85 |
+| Facebook | 2026 | `HHHHHHHHHHHHHHHHHHSSSSSSSSSSSSCNNNNNNNNN` | 42 | 27 | 2 | 20 | 91 |
+
+## 4. Heatmap: High-value permissions presence matrix
+
+Reading rule: `1 = permission declared in that year's sampled APK/manifest`, `0 = absent`. These tables include only rows coded as **High-value / Sensitive / AI-relevant** in the workbook.
+
+### 4.1 TikTok high-value permission matrix
+
+| Category | Permission | 2022 | 2023 | 2024 | 2025 | 2026 | Pattern | AI relevance |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Location & Tracking | `android.permission.ACCESS_FINE_LOCATION` | 1 | 0 | 1 | 0 | 1 | Intermittent: 2022, 2024, 2026 | Supports location-based recommendation, nearby content, geo-based advertising attribution, place-based safety, and risk control. |
+| Location & Tracking | `android.permission.ACCESS_COARSE_LOCATION` | 0 | 1 | 1 | 1 | 1 | Added in 2023 and retained | Supports location-based recommendation, nearby content, geo-based advertising attribution, place-based safety, and risk control. |
+| Location & Tracking | `android.permission.ACCESS_MEDIA_LOCATION` | 0 | 0 | 0 | 1 | 1 | Added in 2025 and retained | Supports location-based recommendation, nearby content, geo-based advertising attribution, place-based safety, and risk control. |
+| Camera / Audio / Multimodal AI | `android.permission.CAMERA` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | Directly relevant to image, video, voice, creation, live streaming, visual recognition, speech processing, and multimodal AI input. |
+| Camera / Audio / Multimodal AI | `android.permission.RECORD_AUDIO` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | Directly relevant to image, video, voice, creation, live streaming, visual recognition, speech processing, and multimodal AI input. |
+| Camera / Audio / Multimodal AI | `android.permission.MODIFY_AUDIO_SETTINGS` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | Directly relevant to image, video, voice, creation, live streaming, visual recognition, speech processing, and multimodal AI input. |
+| Media & Content Access | `android.permission.READ_MEDIA_IMAGES` | 0 | 0 | 1 | 1 | 1 | Added in 2024 and retained | Supports access to user images, video, audio, uploads, editing, content understanding, recommendation systems, and multimodal input. |
+| Media & Content Access | `android.permission.READ_MEDIA_VIDEO` | 0 | 0 | 1 | 1 | 1 | Added in 2024 and retained | Supports access to user images, video, audio, uploads, editing, content understanding, recommendation systems, and multimodal input. |
+| Media & Content Access | `android.permission.READ_MEDIA_AUDIO` | 0 | 0 | 1 | 1 | 1 | Added in 2024 and retained | Supports access to user images, video, audio, uploads, editing, content understanding, recommendation systems, and multimodal input. |
+| Media & Content Access | `android.permission.READ_MEDIA_VISUAL_USER_SELECTED` | 0 | 0 | 0 | 1 | 1 | Added in 2025 and retained | Supports access to user images, video, audio, uploads, editing, content understanding, recommendation systems, and multimodal input. |
+| Media & Content Access | `android.permission.READ_EXTERNAL_STORAGE` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | Supports access to user images, video, audio, uploads, editing, content understanding, recommendation systems, and multimodal input. |
+| Media & Content Access | `android.permission.WRITE_EXTERNAL_STORAGE` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | Supports access to user images, video, audio, uploads, editing, content understanding, recommendation systems, and multimodal input. |
+| Contacts & Identity | `android.permission.READ_CONTACTS` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | Relevant to social graph construction, friend discovery, account association, recommendation, and growth systems. |
+| Contacts & Identity | `android.permission.AUTHENTICATE_ACCOUNTS` | 1 | 1 | 0 | 0 | 0 | Removed after 2023 | Relevant to social graph construction, friend discovery, account association, recommendation, and growth systems. |
+| Contacts & Identity | `com.zhiliaoapp.musically.permission.READ_ACCOUNT` | 1 | 1 | 0 | 0 | 0 | Removed after 2023 | Relevant to social graph construction, friend discovery, account association, recommendation, and growth systems. |
+| Contacts & Identity | `com.zhiliaoapp.musically.permission.WRITE_ACCOUNT` | 1 | 1 | 0 | 0 | 0 | Removed after 2023 | Relevant to social graph construction, friend discovery, account association, recommendation, and growth systems. |
+| Personal Data / Calendar | `android.permission.READ_CALENDAR` | 1 | 1 | 0 | 0 | 0 | Removed after 2023 | Calendar data is personal-context data and can be relevant to contextual personalization, reminders, recommendation, and privacy risk. |
+| Personal Data / Calendar | `android.permission.WRITE_CALENDAR` | 1 | 1 | 0 | 0 | 0 | Removed after 2023 | Calendar data is personal-context data and can be relevant to contextual personalization, reminders, recommendation, and privacy risk. |
+| Ads / Personalization / Recommendation | `com.google.android.gms.permission.AD_ID` | 0 | 0 | 1 | 1 | 1 | Added in 2024 and retained | Relevant to advertising ID access, attribution, personalization, recommendation, growth systems, and campaign measurement. |
+| Ads / Personalization / Recommendation | `android.permission.ACCESS_ADSERVICES_AD_ID` | 0 | 0 | 0 | 1 | 1 | Added in 2025 and retained | Relevant to advertising ID access, attribution, personalization, recommendation, growth systems, and campaign measurement. |
+| Ads / Personalization / Recommendation | `android.permission.ACCESS_ADSERVICES_ATTRIBUTION` | 0 | 0 | 0 | 1 | 1 | Added in 2025 and retained | Relevant to advertising ID access, attribution, personalization, recommendation, growth systems, and campaign measurement. |
+| Ads / Personalization / Recommendation | `com.orange.update.permission.READ_ATTRIBUTION` | 0 | 1 | 1 | 1 | 1 | Added in 2023 and retained | Relevant to advertising ID access, attribution, personalization, recommendation, growth systems, and campaign measurement. |
+| Ads / Personalization / Recommendation | `com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | Relevant to advertising ID access, attribution, personalization, recommendation, growth systems, and campaign measurement. |
+| Ads / Personalization / Recommendation | `com.tiktok.preload.permission.IDENTIFY` | 0 | 0 | 1 | 1 | 1 | Added in 2024 and retained | Relevant to advertising ID access, attribution, personalization, recommendation, growth systems, and campaign measurement. |
+| Behavioral / Monitoring | `android.permission.DETECT_SCREEN_CAPTURE` | 0 | 0 | 0 | 1 | 1 | Added in 2025 and retained | May reflect behavioral monitoring, screen-capture detection, anti-abuse logic, fraud prevention, or user activity context. |
+| Behavioral / Monitoring | `android.permission.SYSTEM_ALERT_WINDOW` | 0 | 1 | 1 | 1 | 1 | Added in 2023 and retained | May reflect behavioral monitoring, screen-capture detection, anti-abuse logic, fraud prevention, or user activity context. |
+| Behavioral / Monitoring | `android.permission.POST_NOTIFICATIONS` | 0 | 0 | 1 | 1 | 1 | Added in 2024 and retained | May reflect behavioral monitoring, screen-capture detection, anti-abuse logic, fraud prevention, or user activity context. |
+| Behavioral / Monitoring | `android.permission.GET_TASKS` | 1 | 1 | 0 | 0 | 0 | Removed after 2023 | May reflect behavioral monitoring, screen-capture detection, anti-abuse logic, fraud prevention, or user activity context. |
+| Behavioral / Monitoring | `android.permission.REORDER_TASKS` | 1 | 1 | 1 | 1 | 1 | Persistent 2022–2026 | May reflect behavioral monitoring, screen-capture detection, anti-abuse logic, fraud prevention, or user activity context. |
+| Biometric / Authentication | `android.permission.USE_BIOMETRIC` | 0 | 0 | 0 | 1 | 1 | Added in 2025 and retained | Relevant to login, payments, authentication, identity verification, and sensitive operation security. |
+| Biometric / Authentication | `android.permission.USE_FINGERPRINT` | 0 | 0 | 0 | 1 | 1 | Added in 2025 and retained | Relevant to login, payments, authentication, identity verification, and sensitive operation security. |
+
+## 5. Year-over-year additions/removals
+
+Definition: `Added = 0→1`, `Removed = 1→0` between two adjacent sampled versions. `Net change = Added - Removed`.
+
+### 5.1 Summary table
+
+| App | Transition | Added | Removed | Net change | Added by stack group | Removed by stack group |
+| --- | --- | --- | --- | --- | --- | --- |
+| TikTok | 2022→2023 | 11 | 2 | +9 | High-value / Sensitive / AI-relevant: 3; System / Functional / Background: 4; Noise / Compatibility / Push: 4 | High-value / Sensitive / AI-relevant: 1; System / Functional / Background: 1 |
+| TikTok | 2023→2024 | 9 | 45 | -36 | High-value / Sensitive / AI-relevant: 7; Noise / Compatibility / Push: 2 | High-value / Sensitive / AI-relevant: 6; System / Functional / Background: 3; Noise / Compatibility / Push: 36 |
+| TikTok | 2024→2025 | 14 | 1 | +13 | High-value / Sensitive / AI-relevant: 7; System / Functional / Background: 4; Noise / Compatibility / Push: 3 | High-value / Sensitive / AI-relevant: 1 |
+| TikTok | 2025→2026 | 9 | 4 | +5 | High-value / Sensitive / AI-relevant: 1; System / Functional / Background: 4; Noise / Compatibility / Push: 4 | System / Functional / Background: 1; Noise / Compatibility / Push: 3 |
+| Instagram | 2022→2023 | 8 | 0 | +8 | High-value / Sensitive / AI-relevant: 6; System / Functional / Background: 1; Noise / Compatibility / Push: 1 | None |
+| Instagram | 2023→2024 | 17 | 0 | +17 | High-value / Sensitive / AI-relevant: 8; System / Functional / Background: 8; Noise / Compatibility / Push: 1 | None |
+| Instagram | 2024→2025 | 7 | 2 | +5 | High-value / Sensitive / AI-relevant: 5; System / Functional / Background: 2 | High-value / Sensitive / AI-relevant: 2 |
+| Instagram | 2025→2026 | 5 | 1 | +4 | High-value / Sensitive / AI-relevant: 1; System / Functional / Background: 2; Noise / Compatibility / Push: 2 | System / Functional / Background: 1 |
+| Facebook | 2022→2023 | 5 | 0 | +5 | High-value / Sensitive / AI-relevant: 5 | None |
+| Facebook | 2023→2024 | 18 | 0 | +18 | High-value / Sensitive / AI-relevant: 9; System / Functional / Background: 7; Commerce / Platform Services: 1; Noise / Compatibility / Push: 1 | None |
+| Facebook | 2024→2025 | 3 | 0 | +3 | High-value / Sensitive / AI-relevant: 1; System / Functional / Background: 2 | None |
+| Facebook | 2025→2026 | 6 | 0 | +6 | High-value / Sensitive / AI-relevant: 3; System / Functional / Background: 2; Noise / Compatibility / Push: 1 | None |
+
+## 6. Copy-ready result statements
+
+| Claim | Evidence from tables | How to use in paper/report |
+| --- | --- | --- |
+| Finding 1: High-value expansion | Across all three apps, high-value / sensitive / AI-relevant permissions increase from 2022 to 2026: TikTok 15→25, Instagram 17→35, Facebook 24→42. | Supports the claim that AI-relevant capabilities become more prominent over time. |
+| Finding 2: TikTok structural reset | TikTok total permissions decline from 65 in 2022 to 56 in 2026, but high-value permissions rise from 15 to 25; high-value share rises from 23.1% to 44.6%. | Shows that raw permission count alone is misleading; the permission profile becomes more concentrated around AI-relevant capabilities. |
+| Finding 3: Meta steady expansion | Instagram grows from 38 to 72 total permissions and Facebook from 59 to 91; both also show strong growth in high-value categories. | Suggests a more cumulative expansion pattern in Meta apps. |
+| Finding 4: Media/multimodal categories are central | Camera/audio and media access permissions are persistent and expand via newer media and foreground-service permissions. | Connects app permission evolution to content creation, short-video editing, live/voice/video features, and multimodal AI input. |
+| Finding 5: Noise must be separated | Launcher, badge, vendor, push, and app-specific internal permissions can substantially inflate raw counts, especially TikTok before 2024. | Justifies using a codebook and stacked-category analysis rather than relying only on total manifest counts. |
